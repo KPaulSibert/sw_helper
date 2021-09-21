@@ -1,0 +1,21 @@
+{
+  "name": "sw_helper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KPaulSibert/sw_helper.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KPaulSibert/sw_helper/issues"
+  },
+  "homepage": "https://github.com/KPaulSibert/sw_helper#readme"
+}
