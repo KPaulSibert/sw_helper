@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/KPaulSibert/sw_helper/issues"
   },
-  "homepage": "https://github.com/KPaulSibert/sw_helper#readme"
+  "homepage": "https://github.com/KPaulSibert/sw_helper#readme",
+  "dependencies": {
+    "socket.io": "^4.2.0"
+  }
 }

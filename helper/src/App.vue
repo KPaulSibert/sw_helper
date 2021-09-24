@@ -1,20 +1,16 @@
 <script>
 import { ref } from 'vue'
 import Home from './views/Home.vue'
+import { api } from './io'
 
 export default {
   components: { Home },
   name: 'LayoutDefault',
   setup () {
     return {
-      list:ref([]),
-      leftDrawerOpen: ref(false)
+      leftDrawerOpen: ref(false),api
     }
   },
-  async mounted(){
-    const req = await fetch('/api/getDir',{method:"POST"})
-    this.list = await req.json();
-  }
 }
 </script>
 <template>
@@ -31,10 +27,10 @@ export default {
         />
 
         <q-toolbar-title>
-          Quasar App
+          Shopware manager
         </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <q-btn round flat icon="cached" @click="api('clearCache')"/>
       </q-toolbar>
     </q-header>
 
@@ -45,19 +41,19 @@ export default {
       class="bg-grey-2"
     >
       <q-list>
-        <q-item clickable v-for="e in list" :key="e">
+        <q-item clickable v-for="r in $router.options.menu" :key="r.name" @click="$router.replace(r.path)">
           <q-item-section avatar>
-            <q-icon name="description"/>
+            <q-icon v-if="r.icon" :name="r.icon"/>
           </q-item-section>
           <q-item-section>
-            <q-item-label>{{e}}</q-item-label>
+            <q-item-label>{{r.name}}</q-item-label>
           </q-item-section>
         </q-item>
       </q-list>
     </q-drawer>
 
     <q-page-container>
-      <home/>
+      <router-view/>
     </q-page-container>
   </q-layout>
 </template>
