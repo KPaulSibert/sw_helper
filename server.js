@@ -1,6 +1,9 @@
 import {createServer} from "http";
 import { exec } from "child_process";
 import {Server} from "socket.io"
+import { dirname,join } from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = dirname(fileURLToPath(import.meta.url));
 import fs from "fs";
 const port = 2021;
 var IOClient = null;
@@ -24,21 +27,33 @@ function runCommand(cmd,cwd="../"){
 const methods = {
     getDir({name,req,res}){
         const path = "../"+(name||"")
+        console.log(path)
+        if(!fs.existsSync(path)){return res.end('[]')}
         fs.readdir(path,{withFileTypes: true},(e,files)=>{
-            if(e){notFound(res,'')}
+            if(e||!files){return res.end('[]')}
             res.end(JSON.stringify(files.map(f=>f.name)))
         })
     },
-    getPlugins({res}){
-      const name = "custom/plugins"
-      return this.getDir({name,res})
+    readFile({path,res}){
+      return res.end(fs.readFileSync('../'+path))
+    },
+    writeFile({path,res,val}){path='../'+path
+      const dir = path.substring(0,path.lastIndexOf("/"));
+      console.log(dir)
+      if(!fs.existsSync(dir)){fs.mkdirSync(join(__dirname,dir),{recursive:true})}
+      fs.writeFileSync(path,val);
+      res.end('ok');
+
     },
     updatePlugin({name,res}){
       runCommand(`bin/console plugin:update ${name}`);res.end('ok');
     },
     clearCache({res}){
       runCommand(`bin/console cache:clear`);res.end('ok');
-    }
+    },
+    runCommand(){
+
+    },
 }
 async function getBody(req){
     return new Promise((ok)=>{

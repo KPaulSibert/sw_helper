@@ -27,9 +27,10 @@ export default {
         />
 
         <q-toolbar-title>
-          Shopware manager
+          Shopware plugin manager
         </q-toolbar-title>
-
+        <span ref="tools"></span>
+        <q-btn round flat icon="build" @click="api('watchAdmin')"/>
         <q-btn round flat icon="cached" @click="api('clearCache')"/>
       </q-toolbar>
     </q-header>

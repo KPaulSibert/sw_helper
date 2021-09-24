@@ -24,12 +24,14 @@ const menu = [
   }
 ]
 const routes = [...menu,
-  {path: '/plugins/:name',name:'plugin',component:PluginDetail}
+  {path: '/plugins/:name',
+  name:'plugin',
+  component:PluginDetail,props:true}
 ]
 const router = createRouter({
   history: createWebHistory(),
-  routes,
-  menu
+  routes,menu
+  
 })
 
 export default router
