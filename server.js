@@ -1,32 +1,29 @@
 import {createServer} from "http";
 import { exec } from "child_process";
+import {buildPlugins,ROOT,mkdir} from "./sw_plugins/index.js"
 import {Server} from "socket.io"
-import { dirname,join } from 'path';
-import { fileURLToPath } from 'url';
-const __dirname = dirname(fileURLToPath(import.meta.url));
 import fs from "fs";
 const port = 2021;
-var IOClient = null;
-function runCommand(cmd,cwd="../"){
-  console.log('executing command '+cmd)
-  const proc = exec(cmd,{cwd},(e,out,err)=>{
-    if(e){console.log(e)}
-    if(err){console.log(`error: `+err)};
-    console.log(out)
-  });
-  proc.stdout.on('data', function(data) {
-    if(IOClient){
-      IOClient.emit('conosole out',{cmd,data})
-    }
-      console.log(data); 
-    
-    
-  });
-  
+async function runCommand(cmd,cwd){
+  return new Promise((ok,er_cb)=>{
+    if(!cwd){cwd=ROOT}
+    console.log('executing command '+cmd)
+    io.sockets.emit('conosole start',{cmd})
+    const proc = exec(cmd,{cwd},(e,out,err)=>{
+      if(e){er_cb(e)}
+      if(err){er_cb(err)}
+      else{ok(out)}
+      io.sockets.emit('conosole end',{cmd,out:new String(e||err||out)})
+    });
+    proc.stdout.on('data', function(data) {
+      io.sockets.emit('conosole out',{cmd,data})
+    });
+  })
 }
+
 const methods = {
     getDir({name,req,res}){
-        const path = "../"+(name||"")
+        const path = ROOT+(name||"")
         console.log(path)
         if(!fs.existsSync(path)){return res.end('[]')}
         fs.readdir(path,{withFileTypes: true},(e,files)=>{
@@ -34,26 +31,26 @@ const methods = {
             res.end(JSON.stringify(files.map(f=>f.name)))
         })
     },
-    readFile({path,res}){
-      return res.end(fs.readFileSync('../'+path))
+    readFile({path,res}){path=ROOT+path
+      res.end(fs.existsSync(path)?
+        res.end(fs.readFileSync(path)):'')
     },
-    writeFile({path,res,val}){path='../'+path
-      const dir = path.substring(0,path.lastIndexOf("/"));
-      console.log(dir)
-      if(!fs.existsSync(dir)){fs.mkdirSync(join(__dirname,dir),{recursive:true})}
+    writeFile({path,res,val}){path=ROOT+path
+      mkdir(path.substring(0,path.lastIndexOf("/")))
+      if(val && typeof val !="string"){val = JSON.stringify(val)}
       fs.writeFileSync(path,val);
       res.end('ok');
-
     },
     updatePlugin({name,res}){
       runCommand(`bin/console plugin:update ${name}`);res.end('ok');
     },
-    clearCache({res}){
-      runCommand(`bin/console cache:clear`);res.end('ok');
+    runCommand({cmd,path,res}){
+      runCommand(cmd,path);
     },
-    runCommand(){
-
-    },
+    build({data,res}){
+      if(data.plugins){buildPlugins(data.plugins)}
+      res.end('ok')
+    }
 }
 async function getBody(req){
     return new Promise((ok)=>{
@@ -78,7 +75,6 @@ const server = createServer(async (req,res)=>{
 const io = new Server(server);
 io.on('connection', (socket) => {
   console.log('a client connected');
-  IOClient = socket;
 });
 server.listen(port,'0.0.0.0',()=>{console.log('srver started')});
-runCommand('npm run serve','./helper')
+runCommand('npm run serve','sw_helper/helper')

@@ -1,0 +1,5 @@
+{% block sw_cms_block_${cebName} %}
+<div class="sw-cms-block-${name}">
+${Object.keys(slots).map(k=>`  <slot name="${k}">{% block sw_cms_block_${cebName}_slot_${k} %}{% endblock %}</slot>`).join('\n')}
+</div>
+{% endblock %}

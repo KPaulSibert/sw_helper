@@ -8,7 +8,7 @@ export default {
   name: 'LayoutDefault',
   setup () {
     return {
-      leftDrawerOpen: ref(false),api
+      leftDrawerOpen: ref(false),api,DATA
     }
   },
 }
@@ -30,8 +30,8 @@ export default {
           Shopware plugin manager
         </q-toolbar-title>
         <span ref="tools"></span>
-        <q-btn round flat icon="build" @click="api('watchAdmin')"/>
-        <q-btn round flat icon="cached" @click="api('clearCache')"/>
+        <q-btn round flat icon="build" @click="api('runCommand',{cmd:'make watch-admin',path:'../'})"/>
+        <q-btn round flat icon="cached" @click="api('build',{data:DATA})"/>
       </q-toolbar>
     </q-header>
 
