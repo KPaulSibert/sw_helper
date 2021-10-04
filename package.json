@@ -20,6 +20,7 @@
   "homepage": "https://github.com/KPaulSibert/sw_helper#readme",
   "dependencies": {
     "fs-extra": "^10.0.0",
+    "replace": "^1.2.1",
     "socket.io": "^4.2.0"
   }
 }

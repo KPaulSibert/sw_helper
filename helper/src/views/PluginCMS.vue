@@ -1,53 +1,61 @@
 <script>
-import {ref,reactive,inject,provide,watch,computed} from "vue"
-import jsonEditor from "../components/json-editor" 
+import {ref,inject} from "vue"
+import { api } from '../io'
+async function getDirTree(path){
+    console.log(path)
+    const items = await api('getDir',{name:path});
+    return items.map((name)=>({label:name,path:path+'/'+name,lazy:!name.includes('.')}));
+}
+const PATH = 'vendor/shopware/administration/Resources/app/administration/src/module/sw-cms'
 export default {
-    components:{jsonEditor},
-    setup(){
-        const types = ["commerce", "form", "image", "sidebar", "text-image", "text", "video"]
-        const name = inject('name')
-        const data = DATA.plugins[name]
-        if(!data.cms){data.cms=[]}
-        return {data,newCMSname:ref(''),sel:ref(),types}
+  setup() {
+    const name = inject('name')
+    return {tree:ref([]),file:ref(""),name}
+  },
+  async mounted(){
+    this.name = this.$route.params.name
+    this.tree = await getDirTree(PATH)
+  },
+  methods:{
+    async show(node){
+        this.file = {text:await api('readFile',{path:node.path}),path:node.path}
     },
-    methods:{
-        create(){
-            const name = this.newCMSname
-            this.data.cms.push({name,label:name,category:'image-text'}) 
-            this.newCMSname = null
-        },
-        remove(cms){
-            if(this.sel==cms){this.sel = undefined}
-            const arr = this.data.cms
-            arr.splice(arr.indexOf(cms),1)
+    extend(){
+        const path = `custom/plugins/${this.name}/src`+this.file.path.substr(26)
+        const val = `{% sw_extends '@Storefront/${this.file.path.substr(42)}' %}`
+        api('writeFile',{path,val})
+    },
+    async lazyLoad({ node, key, done, fail }){
+        getDirTree(node.path).then(done)
+    },
+    isCMS(node){
+        return node.children?.filter(e=>e.label=='preview').length
+    },
+    create(path){
+        path = path.substr(PATH.length)
+        const name = prompt('name')
+        if(name){
+            api('extendCMS',{path,name,plugin:this.name})
         }
+        
     }
+  }
 }
 </script>
 <template>
-    <q-card class="row no-wrap">
-        <q-list class="col-4">
-            <q-item v-for="cms in data.cms" clickable @click="sel=cms" :active="cms==sel">
-                <q-item-section>
-                    {{cms.name}}
-                </q-item-section>
-                <q-item-section avatar>
-                    <q-btn @click.stop="remove(cms)" flat round icon="delete"/>
-                </q-item-section>
-            </q-item>
-            <div class="flex q-pa-sm">
-                <q-input dense outline v-model="newCMSname"/>
-                    <q-btn @click="create" dense class="col">Create</q-btn>
-            </div>        
-        </q-list>
-        <q-separator vertical/>
-        <div class="col-8 q-pa-md q-gutter-md" v-if="sel">
-            <div> Element<q-toggle v-model="sel.isBlock"/>Block </div>
-            <q-input v-model="sel.name" label="name" outlined />
-            <q-select v-if="sel.isBlock" v-model="sel.category" :options="types" label="category" outlined />
-            <q-input v-model="sel.label" :input="sel.lablel||sel.name" label="label" outlined />
-            <json-editor v-model="sel.slots" label="slots"/>
-        </div>
-    </q-card>
-    
+    <div class="row full-height">
+        <q-scroll-area class="col-6" style="maxWidth:600px">
+            <q-tree @lazy-load="lazyLoad" :nodes="tree" node-key="path">
+                <template v-slot:default-header="prop">
+                    <div @click="show(prop.node)" class="text-weight-bold text-primary row justify-between">
+                        {{ prop.node.label }} 
+                        <q-btn v-if="isCMS(prop.node)" @click.stop="create(prop.node.path)" icon="extension" size='xs' flat round/>
+                    </div>
+                </template>
+            </q-tree>
+        </q-scroll-area>
+        <q-scroll-area class="col">
+            <pre>{{file.text}}</pre>
+        </q-scroll-area>
+    </div>
 </template>

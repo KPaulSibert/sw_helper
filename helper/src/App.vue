@@ -2,9 +2,10 @@
 import { ref } from 'vue'
 import Home from './views/Home.vue'
 import { api } from './io'
+import share from "./components/share.vue"
 
 export default {
-  components: { Home },
+  components: { Home,share },
   name: 'LayoutDefault',
   setup () {
     return {
@@ -25,11 +26,12 @@ export default {
           aria-label="Menu"
           icon="menu"
         />
-
-        <q-toolbar-title>
-          Shopware plugin manager
-        </q-toolbar-title>
-        <span ref="tools"></span>
+        <share ref="bar">
+          <q-toolbar-title>
+            Shopware plugin manager
+          </q-toolbar-title>
+        </share><q-space/>
+        <span ref="tools"/>
         <q-btn round flat icon="build" @click="api('runCommand',{cmd:'make watch-admin',path:'../'})"/>
         <q-btn round flat icon="cached" @click="api('build',{data:DATA})"/>
       </q-toolbar>

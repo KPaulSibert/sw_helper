@@ -1,6 +1,6 @@
 import {createServer} from "http";
 import { exec } from "child_process";
-import {buildPlugins,ROOT,mkdir} from "./sw_plugins/index.js"
+import {extendCMS,ROOT,mkdir} from "./sw_plugins/index.js"
 import {Server} from "socket.io"
 import fs from "fs";
 const port = 2021;
@@ -47,8 +47,8 @@ const methods = {
     runCommand({cmd,path,res}){
       runCommand(cmd,path);
     },
-    build({data,res}){
-      if(data.plugins){buildPlugins(data.plugins)}
+    extendCMS({name,plugin,path,res}){
+      extendCMS(plugin,name,path)
       res.end('ok')
     }
 }
